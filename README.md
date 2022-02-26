@@ -41,7 +41,7 @@ flask run
 - [x] Country is a country code of two characters in lowercase. Example: co
 - [x] This endpoint should use an external API to get the proper info, here is an example: http://api.openweathermap.org/data/2.5/weather?q=Bogota,co&appid=1508a9a4840a5574c822d70ca2132032
 - [ ] The data must be human-readable
-- [ ] Deliver both Temperatures in Celsius and Fahrenheit
+- [x] Deliver both Temperatures in Celsius and Fahrenheit
 - [ ] Use environment variables for configuration
 - [x] The response must include the content-type header (application/json)
 - [ ] Functions must be tested
