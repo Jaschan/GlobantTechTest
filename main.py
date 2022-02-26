@@ -49,6 +49,59 @@ def kelvin_to_fahrenheit(temperature):
     return (temperature - 273.15) * 9 / 5 + 32
 
 
+def wind_degree_to_cardinal_direction(degree):
+    if degree > 360 or degree < 0:
+        return None
+    direction_data = (
+        (348.75, "north"),
+        (326.25, "north-northwest"),
+        (303.75, "northwest"),
+        (281.25, "west-northwest"),
+        (258.75, "west"),
+        (236.25, "west-southwest"),
+        (213.75, "southwest"),
+        (191.25, "south-southwest"),
+        (168.75, "south"),
+        (146.25, "south-southeast"),
+        (123.75, "southeast"),
+        (101.25, "east-southeast"),
+        (78.75, "east"),
+        (56.25, "east-northeast"),
+        (33.75, "northeast"),
+        (11.25, "north-northeast"),
+        (0, "north"),
+    )
+    for initial_degree, direction in direction_data:
+        if degree > initial_degree:
+            return direction
+
+
+def ms_to_kmhr(speed):
+    return speed * 3600 / 1000
+
+
+def wind_speed_to_international_description(speed_in_ms):
+    speed = ms_to_kmhr(speed_in_ms)
+    description_data = (
+        (120, "Hurricane"),
+        (103, "Violent storm"),
+        (88, "Storm"),
+        (76, "Severe gale"),
+        (63, "Gale"),
+        (51, "Near gale"),
+        (40, "Strong breeze"),
+        (30, "Fresh breeze"),
+        (20, "Moderate breeze"),
+        (12, "Gentle breeze"),
+        (7, "Light breeze"),
+        (1, "Light air"),
+        (0, "Calm"),
+    )
+    for km_hr, description in description_data:
+        if speed >= km_hr:
+            return description
+
+
 def convert(owm_json):
     main = owm_json['main']
     sys = owm_json['sys']
@@ -84,10 +137,16 @@ def convert(owm_json):
         sys['sunset'], tz=tz).strftime("%H:%M")
     requested_time = datetime.datetime.fromtimestamp(
         owm_json['dt'], tz=tz).strftime("%Y-%m-%d %H:%M:%S")  # 2018-01-09 11:57:00
+    wind_speed = owm_json['wind']['speed']
+    wind = "{description}, {speed} m/s, {direction}".format(
+        description=wind_speed_to_international_description(wind_speed),
+        speed=wind_speed,
+        direction=wind_degree_to_cardinal_direction(owm_json['wind']['deg'])
+    ).capitalize()
     output = {
         "location_name": location_name,
         "temperature": temperature,
-        "wind": "Gentle breeze, 3.6 m/s, west-northwest",
+        "wind": wind,
         "cloudiness": cloudiness,
         "pressure": pressure,
         "humidity": humidity,
@@ -98,20 +157,3 @@ def convert(owm_json):
         "forecast": {}
     }
     return output
-"""
-{
-"coord": {"lon": -74.0817,"lat":4.6097},
-"weather":[{"id":803,"main":"Clouds","description":"broken clouds","icon":"04d"}],
-"base":"stations",
-"main":{"temp":288.88,"feels_like":288.39,"temp_min":288.88,"temp_max":288.88,"pressure":1023,"humidity":72},
-"visibility":9000,
-"wind":{"speed":4.63,"deg":180},
-"clouds":{"all":75},
-"dt":1645825284,
-"sys":{"type":1,"id":8582,"country":"CO","sunrise":1645787347,"sunset":1645830600},
-"timezone":-18000,
-"id":3688689,
-"name":"Bogota",
-"cod":200
-}
-"""

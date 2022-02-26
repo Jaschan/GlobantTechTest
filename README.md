@@ -46,3 +46,9 @@ flask run
 - [x] The response must include the content-type header (application/json)
 - [ ] Functions must be tested
 - [ ] Keep a cache of 2 minutes of the data. You can use a persistence layer for this.
+
+## Resources
+
+- Open Weather Map API Documentation https://openweathermap.org/current
+- Wind direction and degrees http://snowfence.umn.edu/Components/winddirectionanddegrees.htm
+- Classification of wind speeds https://nesa.cap.gov/media/cms/Beaufort_Wind_Scale_Chart_9697766BC_FAA31559D462A.pdf
