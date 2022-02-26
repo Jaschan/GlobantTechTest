@@ -1,16 +1,19 @@
 from flask import Flask
 from flask import request
 from flask import abort
+import os
 import requests
 import datetime
 import temperature_tools
 import wind_tools
 
 
-app = Flask(__name__)
+OPENWEATHERMAP_API_URL = os.getenv(
+    'OPENWEATHERMAP_API_URL', 'http://api.openweathermap.org/data/2.5/weather')
+OPENWEATHERMAP_APP_ID = os.getenv(
+    'OPENWEATHERMAP_APP_ID', '1508a9a4840a5574c822d70ca2132032')
 
-OPENWEATHERMAP_API = 'http://api.openweathermap.org/data/2.5/weather'
-APP_ID = '1508a9a4840a5574c822d70ca2132032'
+app = Flask(__name__)
 
 
 @app.route("/weather")
@@ -31,8 +34,8 @@ def weather():
 
 def call_external_api(city, country):
     place = "{0},{1}".format(city, country)
-    payload = {'q': place, 'appid': APP_ID}
-    req = requests.get(OPENWEATHERMAP_API, params=payload)
+    payload = {'q': place, 'appid': OPENWEATHERMAP_APP_ID}
+    req = requests.get(OPENWEATHERMAP_API_URL, params=payload)
     if req.status_code == requests.codes.ok:
         return req.json()
     else:

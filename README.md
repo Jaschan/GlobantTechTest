@@ -6,15 +6,30 @@ Goal: Create a Weather API.
 
 ### Windows PowerShell
 
-This steps asumes that **git**, **python** and **pip** are installed
+This steps assumes that **git**, **python** and **pip** are installed
 
 ```
 git clone https://github.com/Jaschan/GlobantTechTest.git
 cd GlobantTechTest
+python -m venv venv
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+# Select 'S'
+.\venv\Scripts\Activate.ps1
 pip install -r .\requirements.txt
 $env:FLASK_APP = "main"
-flask run
+python -m flask run
 ```
+
+Optional config examples
+
+```
+$env:FLASK_RUN_HOST = 'localhost'
+$env:FLASK_RUN_HOST = '192.168.0.2'
+$env:FLASK_RUN_PORT = 8000
+$env:OPENWEATHERMAP_API_URL = 'http://api.openweathermap.org/data/2.5/weather'
+$env:OPENWEATHERMAP_APP_ID = '1508a9a4840a5574c822d70ca2132032'
+```
+
 
 ## Requirements
 
@@ -42,7 +57,7 @@ flask run
 - [x] This endpoint should use an external API to get the proper info, here is an example: http://api.openweathermap.org/data/2.5/weather?q=Bogota,co&appid=1508a9a4840a5574c822d70ca2132032
 - [ ] The data must be human-readable
 - [x] Deliver both Temperatures in Celsius and Fahrenheit
-- [ ] Use environment variables for configuration
+- [x] Use environment variables for configuration
 - [x] The response must include the content-type header (application/json)
 - [ ] Functions must be tested
 - [ ] Keep a cache of 2 minutes of the data. You can use a persistence layer for this.
