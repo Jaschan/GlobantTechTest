@@ -1,6 +1,6 @@
 import unittest
-from temperature_tools import fahrenheit_to_celsius, kelvin_to_celsius, kelvin_to_fahrenheit
 from main import call_external_api, convert
+from temperature_tools import fahrenheit_to_celsius, kelvin_to_celsius, kelvin_to_fahrenheit
 from wind_tools import wind_degree_to_cardinal_direction, wind_speed_to_international_description, _ms_to_kmhr
 
 

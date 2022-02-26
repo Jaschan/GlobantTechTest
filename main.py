@@ -43,43 +43,45 @@ def convert(owm_json):
     main = owm_json['main']
     sys = owm_json['sys']
     country = sys['country']
-    tz = datetime.timezone(
-        datetime.timedelta(seconds=owm_json['timezone']))
 
     location_name = "{city}, {country}".format(
         city=owm_json['name'],
         country=country)
 
+    lat = owm_json['coord']['lat']
+    lon = owm_json['coord']['lon']
+    geo_coordinates = "[{lat:.2f}, {lon:.2f}]".format(lat=lat, lon=lon)
+
     temp_K = main['temp']
     temp_F = ''
     temp_C = ''
-
     if temp_K is not None:
         temp_F = temperature_tools.kelvin_to_fahrenheit(temp_K)
         temp_C = temperature_tools.kelvin_to_celsius(temp_K)
-
     temperature = "{celsius:.0f} °C, {fahrenheit:.0f} °F".format(
         celsius=temp_C,
         fahrenheit=temp_F)
 
+    tz = datetime.timezone(
+        datetime.timedelta(seconds=owm_json['timezone']))
     cloudiness = owm_json['weather'][0]['description'].capitalize()
     pressure = "{0} hpa".format(main['pressure'])
     humidity = "{0}%".format(main['humidity'])
-    lat = owm_json['coord']['lat']
-    lon = owm_json['coord']['lon']
-    geo_coordinates = "[{lat:.2f}, {lon:.2f}]".format(lat=lat, lon=lon)
+
     sunrise = datetime.datetime.fromtimestamp(
         sys['sunrise'], tz=tz).strftime("%H:%M")
     sunset = datetime.datetime.fromtimestamp(
         sys['sunset'], tz=tz).strftime("%H:%M")
     requested_time = datetime.datetime.fromtimestamp(
         owm_json['dt'], tz=tz).strftime("%Y-%m-%d %H:%M:%S")
+
     wind_speed = owm_json['wind']['speed']
     wind = "{description}, {speed} m/s, {direction}".format(
         description=wind_tools.wind_speed_to_international_description(
             wind_speed),
         speed=wind_speed,
         direction=wind_tools.wind_degree_to_cardinal_direction(
+
             owm_json['wind']['deg'])).capitalize()
     output = {
         "location_name": location_name,
