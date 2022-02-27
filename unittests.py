@@ -1,13 +1,74 @@
 import unittest
-from main import call_external_api, convert
-from temperature_tools import fahrenheit_to_celsius, kelvin_to_celsius, kelvin_to_fahrenheit
-from wind_tools import wind_degree_to_cardinal_direction, wind_speed_to_international_description, _ms_to_kmhr
+from unittest.mock import patch, MagicMock
+import weather_tools
+import wind_tools
+import temperature_tools
 
 
-class TestOpenWeatherMapAPI(unittest.TestCase):
+class TestCache(unittest.TestCase):
+    @patch('weather_tools._timestamp', MagicMock(return_value=123456))
+    def test_store_in_cache(self):
+        key = ("city", "country")
+        item = {"fake": "item"}
+        weather_tools._store_in_cache(key, item)
+        self.assertEqual(weather_tools._cache[key], (123456, item))
+        assert weather_tools._timestamp.called
 
+    @patch('weather_tools._timestamp', MagicMock(return_value=123456))
+    def test_retrieve_from_cache(self):
+        key = ("city", "country")
+        item = {"fake": "item"}
+
+        # Same time
+        with patch.dict(weather_tools._cache, {key: (123456, item)}, clear=True):
+            assert weather_tools._cache == {key: (123456, item)}
+            self.assertEqual(weather_tools._retrieve_from_cache(key), item)
+            assert weather_tools._timestamp.called
+        assert weather_tools._cache == {}
+
+        # Exactly 2 minutes
+        with patch.dict(weather_tools._cache, {key: (123456 - 120, item)}, clear=True):
+            assert weather_tools._cache == {key: (123456 - 120, item)}
+            self.assertEqual(weather_tools._retrieve_from_cache(key), item)
+            assert weather_tools._timestamp.called
+        assert weather_tools._cache == {}
+
+        # Exactly 2 minutes and 1 second
+        with patch.dict(weather_tools._cache, {key: (123456 - 121, item)}, clear=True):
+            assert weather_tools._cache == {key: (123456 - 121, item)}
+            self.assertEqual(weather_tools._retrieve_from_cache(key), None)
+            assert weather_tools._timestamp.called
+        assert weather_tools._cache == {}
+
+        # Very old cache
+        with patch.dict(weather_tools._cache, {key: (1, item)}, clear=True):
+            assert weather_tools._cache == {key: (1, item)}
+            self.assertEqual(weather_tools._retrieve_from_cache(key), None)
+            assert weather_tools._timestamp.called
+        assert weather_tools._cache == {}
+
+        # Future cache (should not happen, hence it should return None)
+        with patch.dict(weather_tools._cache, {key: (float('inf'), item)}, clear=True):
+            assert weather_tools._cache == {key: (float('inf'), item)}
+            self.assertEqual(weather_tools._retrieve_from_cache(key), None)
+            assert weather_tools._timestamp.called
+        assert weather_tools._cache == {}
+
+
+class TestWeatherTools(unittest.TestCase):
+    # TODO: mock _call_external_api()
+    def test_get_weather_info(self):
+        #weather_tools.get_weather_info()
+        pass
+
+    @patch('weather_tools.time', MagicMock(return_value=123.456789))
+    def test_timestamp(self):
+        self.assertEqual(weather_tools._timestamp(), 123456)
+        assert weather_tools.time.called
+
+    # TODO: Improve with mock for requests.get()
     def test_call_external_api(self):
-        response = call_external_api("osorno", "cl")
+        response = weather_tools._call_external_api("osorno", "cl")
         self.assertEqual(response['cod'], 200)
 
     def test_json_convertion(self):
@@ -60,7 +121,7 @@ class TestOpenWeatherMapAPI(unittest.TestCase):
             "forecast": {}
         }
 
-        self.assertEqual(convert(dummy), correct_answer)
+        self.assertEqual(weather_tools._convert_to_required_layout(dummy), correct_answer)
 
 
 class TestWindTools(unittest.TestCase):
@@ -102,7 +163,7 @@ class TestWindTools(unittest.TestCase):
         )
         for i, o in test_data:
             with self.subTest(i=i, o=o):
-                self.assertEqual(wind_degree_to_cardinal_direction(i), o)
+                self.assertEqual(wind_tools.wind_degree_to_cardinal_direction(i), o)
 
     def test_wind_speed_to_international_description(self):
         test_data = (  # KM/H, Description
@@ -135,13 +196,13 @@ class TestWindTools(unittest.TestCase):
         )
         for i, o in test_data:
             with self.subTest(i=i, o=o):
-                self.assertEqual(wind_speed_to_international_description(i), o)
+                self.assertEqual(wind_tools.wind_speed_to_international_description(i), o)
 
     def test_ms_to_kmhr(self):
-        self.assertAlmostEqual(_ms_to_kmhr(0), 0)
-        self.assertAlmostEqual(_ms_to_kmhr(27.77777778), 100)
-        self.assertAlmostEqual(_ms_to_kmhr(10), 36)
-        self.assertAlmostEqual(_ms_to_kmhr(2), 7.2)
+        self.assertAlmostEqual(wind_tools._ms_to_kmhr(0), 0)
+        self.assertAlmostEqual(wind_tools._ms_to_kmhr(27.77777778), 100)
+        self.assertAlmostEqual(wind_tools._ms_to_kmhr(10), 36)
+        self.assertAlmostEqual(wind_tools._ms_to_kmhr(2), 7.2)
 
 
 class TestTemperatureTools(unittest.TestCase):
@@ -189,20 +250,17 @@ class TestTemperatureTools(unittest.TestCase):
     def test_temperature_convertion(self):
         for k, c, f in self.data:
             with self.subTest(k=k, c=c, f=f):
-                self.assertAlmostEqual(
-                    fahrenheit_to_celsius(f), c, delta=0.0001)
+                self.assertAlmostEqual(temperature_tools.fahrenheit_to_celsius(f), c, delta=0.0001)
 
     def test_kelvin_to_celsius(self):
         for k, c, f in self.data:
             with self.subTest(k=k, c=c, f=f):
-                self.assertAlmostEqual(
-                    kelvin_to_celsius(k), c, delta=0.0001)
+                self.assertAlmostEqual(temperature_tools.kelvin_to_celsius(k), c, delta=0.0001)
 
     def test_kelvin_to_fahrenheit(self):
         for k, c, f in self.data:
             with self.subTest(k=k, c=c, f=f):
-                self.assertAlmostEqual(
-                    kelvin_to_fahrenheit(k), f, delta=0.0001)
+                self.assertAlmostEqual(temperature_tools.kelvin_to_fahrenheit(k), f, delta=0.0001)
 
 
 if __name__ == '__main__':
