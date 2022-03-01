@@ -106,17 +106,39 @@ class TestWeatherTools(unittest.TestCase):
             "forecast": {}
         }
 
-    # TODO: mock _call_external_api()
     def test_get_weather_info(self):
-        #weather_tools.get_weather_info()
-        pass
+        mocked_retrieve_from_cache = patch(
+            'weather_tools._retrieve_from_cache',
+            MagicMock(return_value=None)).start()
+        mocked_call_external_api = patch(
+            'weather_tools._call_external_api',
+            MagicMock(return_value=self.json_from_openweathermap)).start()
+        mocked_convert_to_required_layout = patch(
+            'weather_tools._convert_to_required_layout',
+            MagicMock(return_value=self.json_converted)).start()
+        mocked_store_in_cache = patch(
+            'weather_tools._store_in_cache',
+            MagicMock(return_value=None)).start()
+
+        cases = (
+            ("bogota", "co"),
+            ("tokyo", "jp"),
+            ("osorno", "cl"),
+        )
+        for city, country in cases:
+            with self.subTest(city=city, country=country):
+                weather_tools.get_weather_info(city, country)
+                mocked_retrieve_from_cache.assert_called_with((city, country))
+                mocked_call_external_api.assert_called_with(city, country)
+                mocked_convert_to_required_layout.assert_called_with(self.json_from_openweathermap)
+                mocked_store_in_cache.assert_called_with((city, country), self.json_converted)
 
     def test_call_external_api(self):
         self.maxDiff = None
         cases = (
-            ("osorno", "cl", 200, self.json_from_openweathermap),
-            ("osorno", "cl", 501, {'cod': 501}),
-            ("osorno", "cl", 200, {'cod': 501}),  # Looks weird, but it is possible
+            ("bogota", "co", 200, self.json_from_openweathermap),
+            ("bogota", "co", 501, {'cod': 501}),
+            ("bogota", "co", 200, {'cod': 501}),  # Looks weird, but it is possible
         )
         for city, country, status_code, response_json in cases:
             with self.subTest(city=city, country=country, status_code=status_code, response_json=response_json):

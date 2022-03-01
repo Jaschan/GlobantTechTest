@@ -59,7 +59,7 @@ $env:OPENWEATHERMAP_APP_ID = '1508a9a4840a5574c822d70ca2132032'
 - [x] Deliver both Temperatures in Celsius and Fahrenheit
 - [x] Use environment variables for configuration
 - [x] The response must include the content-type header (application/json)
-- [ ] Functions must be tested
+- [x] Functions must be tested
 - [X] Keep a cache of 2 minutes of the data. You can use a persistence layer for this.
 
 ## Resources
