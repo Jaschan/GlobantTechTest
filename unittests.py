@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 import weather_tools
 import wind_tools
 import temperature_tools
@@ -56,23 +56,8 @@ class TestCache(unittest.TestCase):
 
 
 class TestWeatherTools(unittest.TestCase):
-    # TODO: mock _call_external_api()
-    def test_get_weather_info(self):
-        #weather_tools.get_weather_info()
-        pass
-
-    @patch('weather_tools.time', MagicMock(return_value=123.456789))
-    def test_timestamp(self):
-        self.assertEqual(weather_tools._timestamp(), 123456)
-        assert weather_tools.time.called
-
-    # TODO: Improve with mock for requests.get()
-    def test_call_external_api(self):
-        response = weather_tools._call_external_api("osorno", "cl")
-        self.assertEqual(response['cod'], 200)
-
-    def test_json_convertion(self):
-        dummy = {
+    def setUp(self):
+        self.json_from_openweathermap = {
             "coord": {"lon": -74.0817, "lat": 4.6097},
             "weather": [
                 {
@@ -107,7 +92,7 @@ class TestWeatherTools(unittest.TestCase):
             "name": "Bogota",
             "cod": 200
         }
-        correct_answer = {
+        self.json_converted = {
             "location_name": "Bogota, CO",
             "temperature": "17 °C, 63 °F",
             "wind": "Gentle breeze, 3.6 m/s, south",
@@ -121,13 +106,46 @@ class TestWeatherTools(unittest.TestCase):
             "forecast": {}
         }
 
-        self.assertEqual(weather_tools._convert_to_required_layout(dummy), correct_answer)
+    # TODO: mock _call_external_api()
+    def test_get_weather_info(self):
+        #weather_tools.get_weather_info()
+        pass
+
+    def test_call_external_api(self):
+        self.maxDiff = None
+        cases = (
+            ("osorno", "cl", 200, self.json_from_openweathermap),
+            ("osorno", "cl", 501, {'cod': 501}),
+            ("osorno", "cl", 200, {'cod': 501}),  # Looks weird, but it is possible
+        )
+        for city, country, status_code, response_json in cases:
+            with self.subTest(city=city, country=country, status_code=status_code, response_json=response_json):
+                mock = Mock()
+                mock.json = Mock(return_value=response_json)
+                mock.status_code = status_code
+                with patch('requests.get', MagicMock(return_value=mock)) as patched:
+                    response = weather_tools._call_external_api(city, country)
+                    patched.assert_called_with(
+                        weather_tools._OPENWEATHERMAP_API_URL,
+                        params={'q': "{0},{1}".format(city, country),
+                                'appid': weather_tools._OPENWEATHERMAP_APP_ID})
+                    self.assertEqual(response, response_json)
+
+    def test_json_convertion(self):
+        self.assertEqual(
+            weather_tools._convert_to_required_layout(self.json_from_openweathermap),
+            self.json_converted)
+
+    @patch('weather_tools.time', MagicMock(return_value=123.456789))
+    def test_timestamp(self):
+        self.assertEqual(weather_tools._timestamp(), 123456)
+        assert weather_tools.time.called
 
 
 class TestWindTools(unittest.TestCase):
 
     def test_wind_degree_to_cardinal_direction(self):
-        test_data = (
+        test_data = (  # degree, cardinal direction
             (348.76, "north"),
             (11.24, "north"),
             (11.26, "north-northeast"),
