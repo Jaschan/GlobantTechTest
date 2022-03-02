@@ -37,11 +37,11 @@ These steps assumes that **git**, **python** and **pip** are installed
 ```
 git clone https://github.com/Jaschan/GlobantTechTest.git
 cd GlobantTechTest
-python -m venv venv
-source .\venv\Scripts\activate
-pip install -r .\requirements.txt
+python3 -m venv venv
+source ./venv/bin/activate
+pip install -r requirements.txt
 export FLASK_APP=main
-python -m flask run
+python3 -m flask run
 ```
 
 Optional configurations examples
