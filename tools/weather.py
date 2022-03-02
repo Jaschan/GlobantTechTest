@@ -1,6 +1,6 @@
+import tools.temperature
+import tools.wind
 import datetime
-import temperature_tools
-import wind_tools
 import os
 import requests
 import threading
@@ -88,9 +88,9 @@ def _convert_to_required_layout(owm_json):
     temp_F = ''
     temp_C = ''
     if temp_K is not None:
-        temp_F = temperature_tools.kelvin_to_fahrenheit(temp_K)
-        temp_C = temperature_tools.kelvin_to_celsius(temp_K)
-    temperature = "{celsius:.0f} °C, {fahrenheit:.0f} °F".format(
+        temp_F = tools.temperature.kelvin_to_fahrenheit(temp_K)
+        temp_C = tools.temperature.kelvin_to_celsius(temp_K)
+    temps = "{celsius:.0f} °C, {fahrenheit:.0f} °F".format(
         celsius=temp_C,
         fahrenheit=temp_F)
 
@@ -108,17 +108,17 @@ def _convert_to_required_layout(owm_json):
         owm_json['dt'], tz=tz).strftime("%Y-%m-%d %H:%M:%S")
 
     wind_speed = owm_json['wind']['speed']
-    wind = "{description}, {speed} m/s, {direction}".format(
-        description=wind_tools.wind_speed_to_international_description(
+    wind_text = "{description}, {speed} m/s, {direction}".format(
+        description=tools.wind.wind_speed_to_international_description(
             wind_speed),
         speed=wind_speed,
-        direction=wind_tools.wind_degree_to_cardinal_direction(
+        direction=tools.wind.wind_degree_to_cardinal_direction(
 
             owm_json['wind']['deg'])).capitalize()
     output = {
         "location_name": location_name,
-        "temperature": temperature,
-        "wind": wind,
+        "temperature": temps,
+        "wind": wind_text,
         "cloudiness": cloudiness,
         "pressure": pressure,
         "humidity": humidity,

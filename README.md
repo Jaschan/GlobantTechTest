@@ -6,7 +6,7 @@ Goal: Create a Weather API.
 
 ### Windows PowerShell
 
-This steps assumes that **git**, **python** and **pip** are installed
+These steps assumes that **git**, **python** and **pip** are installed
 
 ```
 git clone https://github.com/Jaschan/GlobantTechTest.git
@@ -20,7 +20,7 @@ $env:FLASK_APP = "main"
 python -m flask run
 ```
 
-Optional config examples
+Optional configurations examples
 
 ```
 $env:FLASK_RUN_HOST = 'localhost'
@@ -30,6 +30,33 @@ $env:OPENWEATHERMAP_API_URL = 'http://api.openweathermap.org/data/2.5/weather'
 $env:OPENWEATHERMAP_APP_ID = '1508a9a4840a5574c822d70ca2132032'
 ```
 
+### Bash
+
+These steps assumes that **git**, **python** and **pip** are installed
+
+```
+git clone https://github.com/Jaschan/GlobantTechTest.git
+cd GlobantTechTest
+python -m venv venv
+source .\venv\Scripts\activate
+pip install -r .\requirements.txt
+export FLASK_APP=main
+python -m flask run
+```
+
+Optional configurations examples
+
+```
+export FLASK_RUN_HOST=localhost
+export FLASK_RUN_HOST=192.168.0.2
+export FLASK_RUN_PORT=8000
+export OPENWEATHERMAP_API_URL=http://api.openweathermap.org/data/2.5/weather
+export OPENWEATHERMAP_APP_ID=1508a9a4840a5574c822d70ca2132032
+```
+
+## Instructions to run the tests
+
+From the project's root folder, run the following command: `python -m unittest discover`
 
 ## Requirements
 
