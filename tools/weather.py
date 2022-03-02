@@ -23,7 +23,10 @@ def get_weather_info(city, country):
     if output is not None:
         return output
     # Call external api
-    response = _call_external_api(city, country)
+    try:
+        response = _call_external_api(city, country)
+    except ErrorCode:
+        return None
     # Convert
     output = _convert_to_required_layout(response)
     # Save into cache
@@ -65,10 +68,10 @@ def _call_external_api(city, country):
         response = req.json()
         status_code = response.get('cod')
         if status_code != requests.codes.ok:
-            return {'cod': status_code}
+            raise ErrorCode(status_code)
         return response
     else:
-        return {'cod': req.status_code}
+        raise ErrorCode(req.status_code)
 
 
 def _convert_to_required_layout(owm_json):
@@ -129,3 +132,9 @@ def _convert_to_required_layout(owm_json):
         "forecast": {}
     }
     return output
+
+
+class ErrorCode(Exception):
+    def __init__(self, code):
+        super(ErrorCode, self).__init__()
+        self.code = code

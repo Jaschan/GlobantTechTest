@@ -87,10 +87,9 @@ class TestWeatherTools(unittest.TestCase):
 
     def test_call_external_api(self):
         self.maxDiff = None
-        cases = (
+        cases = (  # City, Country, Request's status, OpenWeatherMap's json
             ("bogota", "co", 200, self.json_from_openweathermap),
-            ("bogota", "co", 501, {'cod': 501}),
-            ("bogota", "co", 200, {'cod': 501}),  # Looks weird, but it is possible
+            ("bogota", "co", 200, {'cod': 200}),
         )
         for city, country, status_code, response_json in cases:
             with self.subTest(city=city, country=country, status_code=status_code, response_json=response_json):
@@ -104,6 +103,26 @@ class TestWeatherTools(unittest.TestCase):
                         params={'q': "{0},{1}".format(city, country),
                                 'appid': tools.weather._OPENWEATHERMAP_APP_ID})
                     self.assertEqual(response, response_json)
+
+    def test_call_external_api_exception(self):
+        self.maxDiff = None
+        cases = (  # City, Country, Request's status, Error code
+            ("bogota", "co", 501, 501),
+            ("bogota", "co", 404, 404),
+        )
+        for city, country, status_code, error_code in cases:
+            with self.subTest(city=city, country=country, status_code=status_code, error_code=error_code):
+                mock = Mock()
+                mock.json = Mock(return_value=None)
+                mock.status_code = status_code
+                with patch('requests.get', MagicMock(return_value=mock)) as patched:
+                    with self.assertRaises(tools.weather.ErrorCode) as ec:
+                        tools.weather._call_external_api(city, country)
+                    self.assertEqual(ec.exception.code, error_code)
+                    patched.assert_called_with(
+                        tools.weather._OPENWEATHERMAP_API_URL,
+                        params={'q': "{0},{1}".format(city, country),
+                                'appid': tools.weather._OPENWEATHERMAP_APP_ID})
 
     def test_json_convertion(self):
         self.assertEqual(
